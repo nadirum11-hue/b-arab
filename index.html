@@ -823,7 +823,7 @@
             </div>
         </div>
 
-        <div class="p-3 md:p-4 bg-white z-10 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] shrink-0 flex justify-center">
+        <div class="p-3 md:p-4 bg-white z-10 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] shrink-0 flex flex-col items-center justify-center gap-3">
             <button id="btn-check-answer" onclick="checkAnswer()" class="w-full max-w-xl block bg-blue-500 hover:bg-blue-600 text-white font-black text-lg md:text-xl py-3 rounded-xl shadow-[0_6px_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all uppercase tracking-wide">
                 <i class="fas fa-check-circle mr-2"></i> CEK JAWABAN SAYA
             </button>
@@ -2167,7 +2167,34 @@
             } else {
                 const nextBtn = document.getElementById('btn-next-question');
                 const nextStudentBtn = document.getElementById('btn-next-student');
-                if (appState.game.repeatMode === 'satu_nama' && appState.game.activeQuestions.length === 0) {
+                // Tentukan tombol dengan mengikuti alur pemilihan siswa di nextTurn().
+                let nextActionChangesStudent = false;
+                if (appState.game.useName) {
+                    if (appState.game.repeatMode === 'satu_nama') {
+                        // Siswa yang sama mengerjakan semua soal; baru ganti siswa setelah soal habis.
+                        nextActionChangesStudent = appState.game.activeQuestions.length === 0;
+                    } else if (appState.game.repeatMode === 'semua_siswa_semua_soal') {
+                        // Cari siswa eligible berikutnya dengan aturan round-robin yang sama dengan nextTurn().
+                        const students = appState.game.activeStudents || [];
+                        const pools = appState.game.studentQuestionPools || {};
+                        const keyFor = student => String(student.ID || `${student.Kelas}::${student.Nama}`);
+                        const startIndex = appState.game.roundRobinIndex ?? -1;
+                        let nextEligibleStudent = null;
+                        for (let step = 1; step <= students.length; step++) {
+                            const candidate = students[(startIndex + step) % students.length];
+                            if (candidate && (pools[keyFor(candidate)] || []).length > 0) {
+                                nextEligibleStudent = candidate;
+                                break;
+                            }
+                        }
+                        nextActionChangesStudent = !!nextEligibleStudent &&
+                            String(nextEligibleStudent.ID || '') !== String(appState.game.currentStudent?.ID || '');
+                    } else {
+                        // Pada mode standar, nextTurn() mengambil siswa berikutnya setiap giliran.
+                        nextActionChangesStudent = true;
+                    }
+                }
+                if (nextActionChangesStudent) {
                     nextStudentBtn.classList.remove('hidden');
                     nextBtn.classList.add('hidden');
                 } else {
