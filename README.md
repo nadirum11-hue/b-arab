@@ -62,3 +62,17 @@ Catatan: perubahan ini sudah diperiksa secara sintaks, tetapi belum diuji terhad
 - Pasangan yang tidak lengkap juga dicatat sebagai jawaban salah saat tombol cek/lanjut ditekan, agar siswa tetap dapat melanjutkan.
 - Kunci jawaban dan koreksi tetap disimpan di riwayat jawaban untuk ditampilkan di rekap akhir.
 - Mode Jawaban Langsung tetap mempertahankan mekanisme umpan balik dan kesempatan memperbaiki jawaban.
+
+
+## Perbaikan tegas: Menjodohkan pada Jawaban Terakhir (v10)
+- Saat pilihan setup adalah Jawaban Terakhir, soal Menjodohkan tidak menampilkan popup/peringatan benar-salah ketika tombol SELANJUTNYA ditekan.
+- Jawaban lengkap yang salah maupun pasangan yang belum lengkap tetap dicatat sebagai nilai 0 dan giliran lanjut mengikuti mode Manual/Otomatis.
+- Koreksi dan kunci jawaban tetap disimpan untuk rekap akhir.
+- Deteksi mode memeriksa state permainan sekaligus pilihan mode yang dicentang pada setup untuk menghindari state yang tidak sinkron.
+- Cache PWA dinaikkan ke v10 agar perubahan frontend dimuat ulang.
+
+
+## V11 — Tombol reset lebih kecil
+- Tombol **RESET PASANGAN** sekarang kecil, rata kiri di area bawah, dan tidak selebar tombol lanjut untuk mengurangi salah klik.
+- Cache PWA dinaikkan ke `sei-pwa-v11`.
+- Ganti `index.html` dan `sw.js` di folder utama GitHub. `Code.gs` tidak perlu diganti untuk perubahan tata letak ini.

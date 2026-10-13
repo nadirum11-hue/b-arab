@@ -179,6 +179,29 @@
         #btn-next-student.student-switch-button { background:linear-gradient(135deg,#f97316,#dc2626 70%,#991b1b) !important; box-shadow:0 9px 0 #991b1b,0 14px 24px rgba(220,38,38,.3) !important; padding:1.25rem 1rem !important; min-height:76px; font-size:clamp(1.1rem,3vw,1.55rem) !important; transform-origin:center; animation:studentButtonShake .34s linear infinite,buttonPulse .8s ease-in-out infinite; }
         @keyframes studentButtonShake { 0%,100%{transform:translateX(0) rotate(0)} 25%{transform:translateX(-3px) rotate(-.8deg)} 50%{transform:translateX(3px) rotate(.8deg)} 75%{transform:translateX(-2px) rotate(-.5deg)} }
         @keyframes buttonPulse { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.12)} }
+        /* Tombol reset pasangan dibuat kecil di sisi kiri, terpisah dari tombol lanjut */
+        #btn-reset-matching:not(.hidden) {
+          align-self:flex-start !important;
+          width:auto !important;
+          max-width:none !important;
+          display:inline-flex !important;
+          align-items:center !important;
+          justify-content:center !important;
+          padding:.35rem .65rem !important;
+          margin:0 auto .15rem 0 !important;
+          min-height:0 !important;
+          font-size:.68rem !important;
+          line-height:1.15 !important;
+          border-width:1px !important;
+          border-radius:.55rem !important;
+          box-shadow:0 1px 2px rgba(15,23,42,.08) !important;
+          letter-spacing:.025em !important;
+          animation:none !important;
+        }
+        #btn-reset-matching i { margin-right:.3rem !important; }
+        @media(max-width:640px) {
+          #btn-reset-matching:not(.hidden) { padding:.32rem .55rem !important; font-size:.64rem !important; }
+        }
         #game-student-card { max-width:min(48vw,620px); }
         #game-student-name { overflow-wrap:anywhere; transition:opacity .15s,transform .15s; }
         #game-question { overflow-wrap:anywhere; word-break:normal; }
