@@ -679,7 +679,16 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">2. Pilih Kategori / Materi (Bisa Lebih Dari 1)</label>
+                            <label for="play-gender" class="block text-sm font-bold text-gray-700 mb-2">2. Pilih Gender Peserta</label>
+                            <select id="play-gender" class="w-full bg-white border-2 border-emerald-200 rounded-xl p-3 font-bold text-gray-800 outline-none focus:border-emerald-500">
+                                <option value="semua" selected>Semua Gender</option>
+                                <option value="L">Laki-laki</option>
+                                <option value="P">Perempuan</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-2">Filter siswa berdasarkan kolom Gender (L/P) pada data siswa. Pilihan ini berlaku untuk semua kelas yang dicentang.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">3. Pilih Kategori / Materi (Bisa Lebih Dari 1)</label>
                             <div id="play-kategori-container" class="max-h-32 overflow-y-auto bg-white border-2 border-emerald-200 rounded-xl p-3 grid grid-cols-1 md:grid-cols-2 gap-2" onchange="updatePlayQuestions()">
                                 <!-- Checkbox Kategori akan di-render di sini -->
                             </div>
@@ -688,17 +697,17 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-clock text-blue-500"></i> Batas Waktu (Detik)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-clock text-blue-500"></i> 4. Batas Waktu (Detik)</label>
                             <input type="number" id="play-waktu" min="0" value="30" oninput="renderCategoryTimeSettings()" class="w-full bg-white border-2 border-blue-200 rounded-xl p-3 focus:border-blue-500 font-black text-blue-700 text-center transition outline-none">
                             <p class="text-[10px] text-gray-500 mt-1 font-bold">Isi 0 jika tidak ingin memakai timer (kecuali durasi kategori diatur tersendiri).</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-heartbeat text-red-500"></i> Efek Waktu Kritis (Detik)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-heartbeat text-red-500"></i> 5. Efek Waktu Kritis (Detik)</label>
                             <input type="number" id="play-kritis" min="0" value="5" class="w-full bg-white border-2 border-red-200 rounded-xl p-3 focus:border-red-500 font-black text-red-600 text-center transition outline-none">
                             <p class="text-[10px] text-gray-500 mt-1 font-bold">Layar akan berkedip merah saat sisa waktu ini.</p>
                         </div>
                         <div class="md:col-span-2 border-t border-blue-200 pt-4">
-                            <label for="play-timer-mode" class="block text-sm font-black text-blue-900 mb-2"><i class="fas fa-stopwatch mr-1"></i> Jenis Waktu / Patokan Timer</label>
+                            <label for="play-timer-mode" class="block text-sm font-black text-blue-900 mb-2"><i class="fas fa-stopwatch mr-1"></i> 6. Jenis Waktu / Patokan Timer</label>
                             <select id="play-timer-mode" onchange="renderCategoryTimeSettings()" class="w-full bg-white border-2 border-blue-200 rounded-xl p-3 font-bold text-gray-800 outline-none">
                                 <option value="siswa">Siswa — waktu berjalan untuk satu siswa dan tidak di-reset saat pindah soal</option>
                                 <option value="soal" selected>Soal — waktu di-reset setiap soal</option>
@@ -1758,6 +1767,7 @@
             const rep = document.getElementById('play-repeat-mode').value; const useN = document.getElementById('play-use-names').checked; const ord = document.querySelector('input[name="play-order"]:checked').value; const ansMode = document.querySelector('input[name="play-answer-mode"]:checked').value;
             const advanceMode = document.querySelector('input[name="play-advance-mode"]:checked')?.value || 'manual';
             const timerMode = document.getElementById('play-timer-mode')?.value || 'soal';
+            const selectedGender = document.getElementById('play-gender')?.value || 'semua';
             const advanceDelay = Math.max(2, Math.min(5, parseInt(document.getElementById('play-advance-delay')?.value, 10) || 3));
             const sO = document.getElementById('play-fx-sound').checked; const sA = document.getElementById('play-fx-apresiasi').checked; const sT = document.getElementById('play-fx-ticker').checked; const sF = document.getElementById('play-fx-flash').checked;
             const sq = document.getElementById('play-single-q-select').value; const lv = document.getElementById('play-lives').value; 
@@ -1770,7 +1780,7 @@
             if (qs.length === 0) return Swal.fire('Kosong', 'Belum ada soal pada kategori/materi yang dipilih.', 'error');
             
             appState.game = { 
-                ...appState.game, classSelected: selClasses.join(', '), categorySelected: selKats.join(', '), repeatMode: rep, useName: useN, order: ord, answerMode: ansMode,
+                ...appState.game, classSelected: selClasses.join(', '), categorySelected: selKats.join(', '), genderSelected: selectedGender, repeatMode: rep, useName: useN, order: ord, answerMode: ansMode,
                 advanceMode: advanceMode, advanceDelay: advanceDelay,
                 fxSound: sO, fxApresiasi: sA, fxTicker: sT, fxFlash: sF, maxLives: lv, singleQuestionId: sq, globalWaktu: Math.max(0, parseInt(document.getElementById('play-waktu').value, 10) || 0), globalKritis: Math.max(0, parseInt(document.getElementById('play-kritis').value, 10) || 0), timerMode: timerMode, categoryTimeMap: {}, categoryTimeDraft: appState.game.categoryTimeDraft || {}, studentTimerKey: null, studentTimerRemaining: null,
                 sessionScores: [], score: 0, correctCount: 0, answeredCount: 0, questionResolved: false, allStudentsCompleted: false, studentHistory: [], globalHistory: []
@@ -1787,6 +1797,13 @@
             if (useN) { 
                 const seenStudentIds = new Set(); const seenStudentNames = new Set();
                 appState.game.originalStudents = appState.studentsList.filter(s => selClasses.includes(s.Kelas)).filter(student => {
+                    // Filter gender memakai nilai L/P yang digunakan data siswa, sekaligus menerima variasi teks lama.
+                    if (selectedGender !== 'semua') {
+                        const rawGender = String(student.Gender || '').trim().toLocaleLowerCase('id-ID');
+                        const normalizedGender = (rawGender === 'l' || rawGender === 'laki-laki' || rawGender === 'laki laki' || rawGender === 'laki_laki' || rawGender === 'male') ? 'L'
+                            : (rawGender === 'p' || rawGender === 'perempuan' || rawGender === 'wanita' || rawGender === 'female') ? 'P' : '';
+                        if (normalizedGender !== selectedGender) return false;
+                    }
                     // Cegah ID yang berulang maupun baris duplikat dengan nama+kelas yang sama di Spreadsheet.
                     const idKey = String(student.ID || '').trim();
                     const nameKey = `${String(student.Kelas||'').trim().toLocaleLowerCase()}::${String(student.Nama||'').trim().replace(/\s+/g,' ').toLocaleLowerCase()}`;
@@ -1795,7 +1812,7 @@
                 });
                 appState.game.activeStudents = [...appState.game.originalStudents];
                 appState.game.currentStudent = null;
-                if(appState.game.activeStudents.length === 0) return Swal.fire('Kosong','Tidak ada siswa di kelas-kelas yang dipilih! Silakan Input Siswa dulu.','error');
+                if(appState.game.activeStudents.length === 0) { const genderLabel = selectedGender === 'L' ? 'laki-laki' : selectedGender === 'P' ? 'perempuan' : ''; const detail = genderLabel ? ` dengan gender ${genderLabel}` : ''; return Swal.fire('Siswa Tidak Ditemukan', `Tidak ada siswa${detail} pada kelas yang dipilih. Periksa pilihan kelas dan kolom Gender pada data siswa.`, 'warning'); }
             }
             if (rep === 'satu') { const selectedQ = qs.find(q => q.ID === sq) || qs[0]; appState.game.activeQuestions = [selectedQ]; }
             if (rep === 'semua_siswa_semua_soal') {
