@@ -2303,9 +2303,10 @@
                         finishQuestion(100, 'Hebat! Semua Pasangan Benar', '');
                     } else {
                         if (appState.game.answerMode === 'terakhir') {
-                            // Mode Jawaban Terakhir mengizinkan siswa memperbaiki pasangan sampai benar.
-                            resetMatchingPairs(false);
-                            Swal.fire({ title: 'Belum tepat', text: 'Ada pasangan yang salah. Semua pasangan direset agar dapat dipilih ulang.', icon: 'warning', confirmButtonText: 'Coba Lagi' });
+                            // Jawaban Terakhir: catat jawaban salah ke rekap dan izinkan permainan lanjut.
+                            // Kunci jawaban/koreksi akan ditampilkan pada rekap akhir, bukan sebagai peringatan saat bermain.
+                            finishQuestion(0, 'Jawaban dicatat', '', false);
+                            return;
                         } else {
                             deductLife('Ada pasangan yang salah. Anda dapat mengatur ulang dan memilih pasangan lagi.');
                             if (!appState.game.questionResolved) setTimeout(() => resetMatchingPairs(false), 900);
@@ -2314,7 +2315,8 @@
                     }
                 } else {
                     if (appState.game.answerMode === 'terakhir') {
-                        Swal.fire({ title: 'Pasangan belum lengkap', text: 'Lengkapi semua pasangan, atau tekan RESET PASANGAN untuk mulai ulang.', icon: 'info', confirmButtonText: 'Lanjutkan' });
+                        // Pasangan kosong/tidak lengkap tetap dicatat sebagai jawaban salah agar siswa bisa lanjut.
+                        finishQuestion(0, 'Jawaban dicatat', '', false);
                     } else { deductLife('Semua pasangan belum lengkap!'); }
                     return;
                 }

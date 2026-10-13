@@ -55,3 +55,10 @@ Pembaruan tambahan: halaman setup sekarang menyediakan pilihan perpindahan soal 
 4. Uji menyimpan beberapa nilai, lalu periksa tab **Nilai** di Google Spreadsheet sebelum menjalankan sesi besar.
 
 Catatan: perubahan ini sudah diperiksa secara sintaks, tetapi belum diuji terhadap spreadsheet/deployment Apps Script milik Anda. Jika gagal lagi, catat pesan error yang tampil agar penyebab server atau izin akses bisa ditentukan.
+
+
+## Perbaikan alur Menjodohkan pada mode Jawaban Terakhir
+- Jawaban benar maupun salah tidak lagi memunculkan dialog peringatan yang menghentikan alur. Jawaban salah langsung dicatat sebagai nilai 0 dan permainan berlanjut sesuai pilihan Manual/Otomatis.
+- Pasangan yang tidak lengkap juga dicatat sebagai jawaban salah saat tombol cek/lanjut ditekan, agar siswa tetap dapat melanjutkan.
+- Kunci jawaban dan koreksi tetap disimpan di riwayat jawaban untuk ditampilkan di rekap akhir.
+- Mode Jawaban Langsung tetap mempertahankan mekanisme umpan balik dan kesempatan memperbaiki jawaban.
