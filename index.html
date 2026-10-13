@@ -2167,6 +2167,10 @@
             stopTimer();
             
             const q = appState.game.currentQuestion;
+            // Sumber kebenaran utama ialah pilihan mode pada setup. Ini juga
+            // mencegah popup umpan balik muncul jika state lama belum sinkron.
+            const endReviewMode = String(appState.game.answerMode || '').trim() === 'terakhir' ||
+                document.querySelector('input[name="play-answer-mode"]:checked')?.value === 'terakhir';
             let userAnswerStr = ""; let correctAnswerStr = q.Jawaban_Atau_Kunci;
 
             if (q.Tipe_Game === 'susun-huruf' || q.Tipe_Game === 'susun-kalimat') { userAnswerStr = Array.from(document.querySelectorAll('#drop-zone .game-block')).map(el => el.textContent.trim()).join(' '); }
@@ -2205,10 +2209,10 @@
             appState.game.studentHistory.push({ questionText: String(q.Pertanyaan || '').split('|||')[0], userAnswer: userAnswerStr || '(kosong)', correctAnswer: correctAnswerStr || '-', isCorrect: score > 0, score: score, maxScore: 100, correction: correctionText, gameType: q.Tipe_Game, category: q.Kategori });
 
             if (score > 0) {
-                if(appState.game.fxApresiasi && appState.game.answerMode !== 'terakhir') { playSound('win'); fireConfetti(); }
+                if(appState.game.fxApresiasi && !endReviewMode) { playSound('win'); fireConfetti(); }
                 appState.game.score += score; appState.game.correctCount++;
             } else {
-                if(appState.game.answerMode !== 'terakhir') { playSound('wrong'); triggerVibrate(500); }
+                if(!endReviewMode) { playSound('wrong'); triggerVibrate(500); }
             }
             appState.game.answeredCount++; document.getElementById('game-score').innerText = String(appState.game.score); saveScore(score);
             document.getElementById('btn-check-answer').classList.add('hidden');
@@ -2221,7 +2225,7 @@
                 // jalur perpindahan agar urutan siswa, soal, dan rekap tetap konsisten.
                 nextBtn.classList.add('hidden');
                 nextStudentBtn.classList.add('hidden');
-                if (showAlert && appState.game.answerMode !== 'terakhir') {
+                if (showAlert && !endReviewMode) {
                     Swal.fire({ title, text: score > 0 ? '' : text, icon: score > 0 ? 'success' : 'error', timer: 1200, timerProgressBar: true, showConfirmButton: false });
                 }
                 const delayMs = (Number(appState.game.advanceDelay) || 3) * 1000;
@@ -2263,7 +2267,7 @@
                     nextBtn.classList.remove('hidden');
                     nextStudentBtn.classList.add('hidden');
                 }
-                if (showAlert && appState.game.answerMode !== 'terakhir') {
+                if (showAlert && !endReviewMode) {
                     if (score > 0) Swal.fire({ title, icon: 'success', timer: 1500, showConfirmButton: false });
                     else Swal.fire({ title, text, icon: 'error', confirmButtonText: 'Lanjut' });
                 }
@@ -2274,6 +2278,23 @@
         function forceCheckAnswer(isManual) {
             const q = appState.game.currentQuestion; if (!q || appState.game.questionResolved) return;
             const md = q.Tipe_Game; let isC = false;
+            const endReviewMode = String(appState.game.answerMode || '').trim() === 'terakhir' ||
+                document.querySelector('input[name="play-answer-mode"]:checked')?.value === 'terakhir';
+
+            // JAWABAN TERAKHIR: khusus Menjodohkan tidak boleh memunculkan
+            // peringatan/koreksi saat permainan berlangsung. Nilai dan koreksi
+            // disimpan di riwayat lalu hanya ditampilkan pada rekap akhir.
+            // Tetap akhiri giliran untuk jawaban benar, salah, maupun belum lengkap.
+            if (md === 'menjodohkan' && endReviewMode) {
+                const expected = String(q.Jawaban_Atau_Kunci || '').split('|').map(x => x.trim()).filter(Boolean);
+                const pairs = Array.isArray(appState.game.matchPairs) ? appState.game.matchPairs : [];
+                const allCorrect = expected.length > 0 && pairs.length === expected.length &&
+                    new Set(pairs.map(pair => Number(pair.leftId))).size === pairs.length &&
+                    new Set(pairs.map(pair => Number(pair.rightId))).size === pairs.length &&
+                    pairs.every(pair => Number(pair.leftId) === Number(pair.rightId));
+                finishQuestion(allCorrect ? 100 : 0, 'Jawaban dicatat', '', false);
+                return;
+            }
             
             if (md === 'susun-huruf') {
                 const k = String(q.Jawaban_Atau_Kunci || '').replace(/\s+/g, ''); const j = Array.from(document.querySelectorAll('#drop-zone .game-block')).map(el => el.textContent.trim()).join('').replace(/\s+/g, '');
@@ -2302,7 +2323,7 @@
                         if(appState.game.answerMode !== 'terakhir') playSound('correct');
                         finishQuestion(100, 'Hebat! Semua Pasangan Benar', '');
                     } else {
-                        if (appState.game.answerMode === 'terakhir') {
+                        if (endReviewMode) {
                             // Jawaban Terakhir: catat jawaban salah ke rekap dan izinkan permainan lanjut.
                             // Kunci jawaban/koreksi akan ditampilkan pada rekap akhir, bukan sebagai peringatan saat bermain.
                             finishQuestion(0, 'Jawaban dicatat', '', false);
@@ -2314,7 +2335,7 @@
                         return;
                     }
                 } else {
-                    if (appState.game.answerMode === 'terakhir') {
+                    if (endReviewMode) {
                         // Pasangan kosong/tidak lengkap tetap dicatat sebagai jawaban salah agar siswa bisa lanjut.
                         finishQuestion(0, 'Jawaban dicatat', '', false);
                     } else { deductLife('Semua pasangan belum lengkap!'); }
@@ -2323,7 +2344,7 @@
             }
             if (isC && md !== 'menjodohkan') { finishQuestion(100, 'Hebat! Anda Benar', ''); } 
             else if (!isC && md !== 'menjodohkan') {
-                if (appState.game.answerMode === 'terakhir') { finishQuestion(0, 'Salah', 'Susunan/Jawaban salah', false); }
+                if (endReviewMode) { finishQuestion(0, 'Salah', 'Susunan/Jawaban salah', false); }
                 else { deductLife('Susunan/Jawaban salah!'); }
             }
         }
