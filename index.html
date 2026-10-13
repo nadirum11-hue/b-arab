@@ -179,29 +179,6 @@
         #btn-next-student.student-switch-button { background:linear-gradient(135deg,#f97316,#dc2626 70%,#991b1b) !important; box-shadow:0 9px 0 #991b1b,0 14px 24px rgba(220,38,38,.3) !important; padding:1.25rem 1rem !important; min-height:76px; font-size:clamp(1.1rem,3vw,1.55rem) !important; transform-origin:center; animation:studentButtonShake .34s linear infinite,buttonPulse .8s ease-in-out infinite; }
         @keyframes studentButtonShake { 0%,100%{transform:translateX(0) rotate(0)} 25%{transform:translateX(-3px) rotate(-.8deg)} 50%{transform:translateX(3px) rotate(.8deg)} 75%{transform:translateX(-2px) rotate(-.5deg)} }
         @keyframes buttonPulse { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.12)} }
-        /* Tombol reset pasangan dibuat kecil di sisi kiri, terpisah dari tombol lanjut */
-        #btn-reset-matching:not(.hidden) {
-          align-self:flex-start !important;
-          width:auto !important;
-          max-width:none !important;
-          display:inline-flex !important;
-          align-items:center !important;
-          justify-content:center !important;
-          padding:.35rem .65rem !important;
-          margin:0 auto .15rem 0 !important;
-          min-height:0 !important;
-          font-size:.68rem !important;
-          line-height:1.15 !important;
-          border-width:1px !important;
-          border-radius:.55rem !important;
-          box-shadow:0 1px 2px rgba(15,23,42,.08) !important;
-          letter-spacing:.025em !important;
-          animation:none !important;
-        }
-        #btn-reset-matching i { margin-right:.3rem !important; }
-        @media(max-width:640px) {
-          #btn-reset-matching:not(.hidden) { padding:.32rem .55rem !important; font-size:.64rem !important; }
-        }
         #game-student-card { max-width:min(48vw,620px); }
         #game-student-name { overflow-wrap:anywhere; transition:opacity .15s,transform .15s; }
         #game-question { overflow-wrap:anywhere; word-break:normal; }
@@ -711,14 +688,28 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-clock text-blue-500"></i> Batas Waktu per Soal (Detik)</label>
-                            <input type="number" id="play-waktu" value="30" class="w-full bg-white border-2 border-blue-200 rounded-xl p-3 focus:border-blue-500 font-black text-blue-700 text-center transition outline-none">
-                            <p class="text-[10px] text-gray-500 mt-1 font-bold">Isi angka 0 jika tidak ingin pakai waktu.</p>
+                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-clock text-blue-500"></i> Batas Waktu (Detik)</label>
+                            <input type="number" id="play-waktu" min="0" value="30" oninput="renderCategoryTimeSettings()" class="w-full bg-white border-2 border-blue-200 rounded-xl p-3 focus:border-blue-500 font-black text-blue-700 text-center transition outline-none">
+                            <p class="text-[10px] text-gray-500 mt-1 font-bold">Isi 0 jika tidak ingin memakai timer (kecuali durasi kategori diatur tersendiri).</p>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-heartbeat text-red-500"></i> Efek Waktu Kritis (Detik)</label>
-                            <input type="number" id="play-kritis" value="5" class="w-full bg-white border-2 border-red-200 rounded-xl p-3 focus:border-red-500 font-black text-red-600 text-center transition outline-none">
+                            <input type="number" id="play-kritis" min="0" value="5" class="w-full bg-white border-2 border-red-200 rounded-xl p-3 focus:border-red-500 font-black text-red-600 text-center transition outline-none">
                             <p class="text-[10px] text-gray-500 mt-1 font-bold">Layar akan berkedip merah saat sisa waktu ini.</p>
+                        </div>
+                        <div class="md:col-span-2 border-t border-blue-200 pt-4">
+                            <label for="play-timer-mode" class="block text-sm font-black text-blue-900 mb-2"><i class="fas fa-stopwatch mr-1"></i> Jenis Waktu / Patokan Timer</label>
+                            <select id="play-timer-mode" onchange="renderCategoryTimeSettings()" class="w-full bg-white border-2 border-blue-200 rounded-xl p-3 font-bold text-gray-800 outline-none">
+                                <option value="siswa">Siswa — waktu berjalan untuk satu siswa dan tidak di-reset saat pindah soal</option>
+                                <option value="soal" selected>Soal — waktu di-reset setiap soal</option>
+                                <option value="kategori">Kategori — waktu diatur untuk setiap kategori</option>
+                            </select>
+                            <p class="text-xs text-blue-800 mt-2">Mode Siswa mereset waktu saat nama siswa berganti. Mode Kategori memakai durasi berbeda untuk setiap kategori yang dipilih.</p>
+                            <div id="play-category-time-settings" class="hidden mt-3 p-3 bg-white border border-blue-200 rounded-xl">
+                                <div class="font-black text-sm text-blue-900 mb-2">Durasi per kategori (detik)</div>
+                                <div id="play-category-time-rows" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                                <p class="text-[10px] text-gray-500 mt-2">Nilai 0 berarti timer dimatikan untuk kategori tersebut.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -870,9 +861,9 @@
             </div>
         </div>
 
-        <div class="p-3 md:p-4 bg-white z-10 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] shrink-0 flex flex-col items-center justify-center gap-3">
-            <button id="btn-reset-matching" onclick="resetMatchingPairs(true)" class="hidden w-full max-w-xl block bg-amber-100 hover:bg-amber-200 text-amber-900 border-2 border-amber-300 font-black text-base md:text-lg py-2.5 rounded-xl shadow-sm active:scale-[0.99] transition-all uppercase tracking-wide">
-                <i class="fas fa-rotate-left mr-2"></i> RESET PASANGAN
+        <div class="relative p-3 pt-12 md:p-4 md:pt-12 bg-white z-10 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] shrink-0 flex flex-col items-center justify-center gap-3">
+            <button id="btn-reset-matching" onclick="resetMatchingPairs(true)" title="Reset pasangan" aria-label="Reset pasangan" class="hidden absolute left-2 top-2 inline-flex items-center justify-center bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-bold text-[10px] md:text-xs px-2 py-1 rounded-lg shadow-sm active:scale-[0.98] transition-all uppercase tracking-wide">
+                <i class="fas fa-rotate-left mr-1"></i> RESET
             </button>
             <button id="btn-check-answer" onclick="checkAnswer()" class="w-full max-w-xl block bg-blue-500 hover:bg-blue-600 text-white font-black text-lg md:text-xl py-3 rounded-xl shadow-[0_6px_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all uppercase tracking-wide">
                 <i class="fas fa-check-circle mr-2"></i> CEK JAWABAN SAYA
@@ -941,7 +932,7 @@
         const appState = {
             kelasList: [], kategoriList: [], studentsList: [], questionsList: [], scoresList: [], absensiList: [], spreadsheetUrl: "",
             settings: { app_title: "SISWA SISWI BERPRESTASI", school_name: "MTS DARUL HIKMAH", guide_name: "Nur M Muridan", quote_ar: "مَنْ جَدَّ وَجَدَ", quote_id: "Barangsiapa bersungguh-sungguh, ia akan berhasil", academic_year: "2026/2027", logo_url: "" },
-            game: { classSelected: '', categorySelected: '', useName: true, order: 'urut', repeatMode: 'sekali', fxSound: true, fxApresiasi: true, fxTicker: true, fxFlash: true, maxLives: 3, currentLives: 3, globalWaktu: 30, globalKritis: 5, answerMode: 'langsung',
+            game: { classSelected: '', categorySelected: '', useName: true, order: 'urut', repeatMode: 'sekali', fxSound: true, fxApresiasi: true, fxTicker: true, fxFlash: true, maxLives: 3, currentLives: 3, globalWaktu: 30, globalKritis: 5, timerMode: 'soal', categoryTimeMap: {}, categoryTimeDraft: {}, studentTimerKey: null, studentTimerRemaining: null, answerMode: 'langsung',
                     activeStudents: [], originalStudents: [], activeQuestions: [], originalQuestions: [], singleQuestionId: null,
                     currentStudent: null, currentQuestion: null, score: 0, correctCount: 0, answeredCount: 0, userAnswer: [], matchPairs: [], questionResolved: false, 
                     timerInterval: null, timeLeft: 0, isCritical: false, sessionScores: [], willChangeStudent: false, isTransitioningTurn: false,
@@ -1726,6 +1717,36 @@
             const qs = appState.questionsList.filter(q => selKats.includes(q.Kategori));
             const sel = document.getElementById('play-single-q-select'); sel.innerHTML = '';
             qs.forEach(q => { const textPreview = (q.Pertanyaan.split('|||')[0].substring(0, 40) + '...') || 'Soal Tanpa Teks Utama'; sel.innerHTML += `<option value="${q.ID}">${q.Tipe_Game} - ${textPreview}</option>`; });
+            renderCategoryTimeSettings();
+        }
+
+        function renderCategoryTimeSettings() {
+            const modeEl = document.getElementById('play-timer-mode');
+            const wrapper = document.getElementById('play-category-time-settings');
+            const rows = document.getElementById('play-category-time-rows');
+            if (!modeEl || !wrapper || !rows) return;
+            // Simpan nilai yang sedang diedit sebelum daftar kategori dirender ulang.
+            if (!appState.game.categoryTimeDraft) appState.game.categoryTimeDraft = {};
+            rows.querySelectorAll('[data-category-time]').forEach(input => { appState.game.categoryTimeDraft[input.dataset.categoryTime] = Math.max(0, parseInt(input.value, 10) || 0); });
+            const selected = Array.from(document.querySelectorAll('.play-kategori-cb:checked')).map(cb => cb.value);
+            const defaultTime = Math.max(0, parseInt(document.getElementById('play-waktu')?.value, 10) || 0);
+            wrapper.classList.toggle('hidden', modeEl.value !== 'kategori');
+            if (modeEl.value !== 'kategori') return;
+            rows.innerHTML = '';
+            if (!selected.length) {
+                rows.innerHTML = '<p class="text-xs text-gray-500">Pilih kategori terlebih dahulu.</p>';
+                return;
+            }
+            selected.forEach((category, index) => {
+                const value = Object.prototype.hasOwnProperty.call(appState.game.categoryTimeDraft, category) ? appState.game.categoryTimeDraft[category] : defaultTime;
+                const row = document.createElement('label');
+                row.className = 'block border border-blue-100 rounded-lg p-2';
+                const title = document.createElement('span'); title.className = 'block text-xs font-bold text-gray-700 mb-1'; title.textContent = category;
+                const input = document.createElement('input'); input.type = 'number'; input.min = '0'; input.step = '1'; input.value = String(value); input.dataset.categoryTime = category;
+                input.className = 'w-full border-2 border-blue-100 rounded-lg p-2 text-center font-black text-blue-700';
+                input.addEventListener('input', () => { appState.game.categoryTimeDraft[category] = Math.max(0, parseInt(input.value, 10) || 0); });
+                row.append(title, input); rows.appendChild(row);
+            });
         }
 
         function toggleSingleQuestionSelect() { const mode = document.getElementById('play-repeat-mode').value; const wrp = document.getElementById('play-single-q-wrapper'); if(mode === 'satu') { wrp.classList.remove('hidden'); updatePlayQuestions(); } else { wrp.classList.add('hidden'); } }
@@ -1736,11 +1757,13 @@
             const selKats = Array.from(document.querySelectorAll('.play-kategori-cb:checked')).map(cb => cb.value);
             const rep = document.getElementById('play-repeat-mode').value; const useN = document.getElementById('play-use-names').checked; const ord = document.querySelector('input[name="play-order"]:checked').value; const ansMode = document.querySelector('input[name="play-answer-mode"]:checked').value;
             const advanceMode = document.querySelector('input[name="play-advance-mode"]:checked')?.value || 'manual';
+            const timerMode = document.getElementById('play-timer-mode')?.value || 'soal';
             const advanceDelay = Math.max(2, Math.min(5, parseInt(document.getElementById('play-advance-delay')?.value, 10) || 3));
             const sO = document.getElementById('play-fx-sound').checked; const sA = document.getElementById('play-fx-apresiasi').checked; const sT = document.getElementById('play-fx-ticker').checked; const sF = document.getElementById('play-fx-flash').checked;
             const sq = document.getElementById('play-single-q-select').value; const lv = document.getElementById('play-lives').value; 
             
             if (selClasses.length === 0 || selKats.length === 0) return Swal.fire('Oops', 'Pilih minimal 1 Kelas dan 1 Kategori Materi dulu!', 'warning');
+            if (timerMode === 'siswa' && !useN) return Swal.fire('Aktifkan Nama Siswa', 'Jenis Waktu SISWA membutuhkan opsi Panggilan Nama Siswa aktif. Aktifkan pencatatan nama siswa atau pilih jenis waktu SOAL/KATEGORI.', 'warning');
             if (rep === 'satu_nama' && !useN) return Swal.fire('Pilih Nama Siswa', 'Pola ini membutuhkan opsi Panggilan Nama Siswa aktif.', 'warning');
             
             const qs = appState.questionsList.filter(q => selKats.includes(q.Kategori));
@@ -1749,9 +1772,16 @@
             appState.game = { 
                 ...appState.game, classSelected: selClasses.join(', '), categorySelected: selKats.join(', '), repeatMode: rep, useName: useN, order: ord, answerMode: ansMode,
                 advanceMode: advanceMode, advanceDelay: advanceDelay,
-                fxSound: sO, fxApresiasi: sA, fxTicker: sT, fxFlash: sF, maxLives: lv, singleQuestionId: sq, globalWaktu: parseInt(document.getElementById('play-waktu').value) || 0, globalKritis: parseInt(document.getElementById('play-kritis').value) || 0,
+                fxSound: sO, fxApresiasi: sA, fxTicker: sT, fxFlash: sF, maxLives: lv, singleQuestionId: sq, globalWaktu: Math.max(0, parseInt(document.getElementById('play-waktu').value, 10) || 0), globalKritis: Math.max(0, parseInt(document.getElementById('play-kritis').value, 10) || 0), timerMode: timerMode, categoryTimeMap: {}, categoryTimeDraft: appState.game.categoryTimeDraft || {}, studentTimerKey: null, studentTimerRemaining: null,
                 sessionScores: [], score: 0, correctCount: 0, answeredCount: 0, questionResolved: false, allStudentsCompleted: false, studentHistory: [], globalHistory: []
             };
+            if (timerMode === 'kategori') {
+                const draft = appState.game.categoryTimeDraft || {};
+                selKats.forEach(category => {
+                    const input = document.querySelector(`[data-category-time=\"${CSS.escape(category)}\"]`);
+                    appState.game.categoryTimeMap[category] = input ? Math.max(0, parseInt(input.value, 10) || 0) : (Object.prototype.hasOwnProperty.call(draft, category) ? draft[category] : appState.game.globalWaktu);
+                });
+            }
             appState.game.originalQuestions = [...qs]; appState.game.activeQuestions = [...qs];
             
             if (useN) { 
@@ -2161,22 +2191,68 @@
         }
 
         function initTimer() {
-            const sec = Math.max(0, parseInt(appState.game.globalWaktu) || 0); const krRaw = Math.max(0, parseInt(appState.game.globalKritis) || 0); const kr = sec > 0 ? Math.min(krRaw, Math.max(0, sec - 1)) : 0;
-            const disp = document.getElementById('timer-display'); stopTimer();
-            if(sec > 0) {
-                appState.game.timeLeft = sec; disp.classList.remove('hidden'); disp.classList.remove('text-red-600', 'bg-red-50', 'border-red-200', 'critical-flash'); disp.classList.add('text-gray-800', 'bg-white', 'border-gray-200'); disp.innerText = sec;
-                appState.game.timerInterval = setInterval(() => {
-                    if (appState.game.questionResolved) return;
-                    const previous = appState.game.timeLeft; appState.game.timeLeft = Math.max(0, previous - 1); disp.innerText = appState.game.timeLeft;
-                    if(kr > 0 && previous > kr && appState.game.timeLeft <= kr) { disp.classList.add('text-red-600', 'bg-red-50', 'border-red-200'); disp.classList.remove('text-gray-800', 'bg-white', 'border-gray-200'); if(appState.game.fxFlash) document.getElementById('fx-layer').classList.add('critical-flash'); }
-                    if(appState.game.timeLeft <= kr && appState.game.timeLeft > 0) playSound('tick');
-                    if(appState.game.timeLeft <= 0) {
-                        stopTimer();
-                        if (appState.game.answerMode === 'terakhir') { finishQuestion(0, 'Waktu Habis!', 'Waktu habis untuk soal ini.', false); }
-                        else { finishQuestion(0, 'Waktu Habis!', 'Gagal menyelesaikan soal.'); }
+            const game = appState.game;
+            const mode = game.timerMode || 'soal';
+            const q = game.currentQuestion;
+            const baseSec = Math.max(0, parseInt(game.globalWaktu, 10) || 0);
+            let sec = baseSec;
+            if (mode === 'kategori') {
+                const category = String(q?.Kategori || '');
+                sec = Object.prototype.hasOwnProperty.call(game.categoryTimeMap || {}, category)
+                    ? Math.max(0, parseInt(game.categoryTimeMap[category], 10) || 0)
+                    : baseSec;
+            } else if (mode === 'siswa') {
+                const student = game.currentStudent;
+                const studentKey = student ? String(student.ID || `${student.Kelas || ''}::${student.Nama || ''}`) : 'MODE_BEBAS';
+                if (game.studentTimerKey !== studentKey || game.studentTimerRemaining === null || game.studentTimerRemaining === undefined) {
+                    game.studentTimerKey = studentKey;
+                    game.studentTimerRemaining = baseSec;
+                }
+                sec = Math.max(0, parseInt(game.studentTimerRemaining, 10) || 0);
+            }
+            const criticalRaw = Math.max(0, parseInt(game.globalKritis, 10) || 0);
+            const critical = sec > 0 ? Math.min(criticalRaw, Math.max(0, sec - 1)) : 0;
+            const disp = document.getElementById('timer-display');
+            stopTimer();
+            const showTimer = mode === 'siswa' ? baseSec > 0 : sec > 0;
+            if (showTimer) {
+                disp.classList.remove('hidden');
+                disp.classList.remove('text-red-600', 'bg-red-50', 'border-red-200', 'critical-flash');
+                disp.classList.add('text-gray-800', 'bg-white', 'border-gray-200');
+                disp.innerText = String(sec);
+            } else {
+                disp.classList.add('hidden');
+            }
+            if (sec <= 0) return;
+            game.timeLeft = sec;
+            game.timerInterval = setInterval(() => {
+                if (game.questionResolved) return;
+                const previous = game.timeLeft;
+                game.timeLeft = Math.max(0, previous - 1);
+                if (mode === 'siswa') game.studentTimerRemaining = game.timeLeft;
+                disp.innerText = String(game.timeLeft);
+                if (critical > 0 && previous > critical && game.timeLeft <= critical) {
+                    disp.classList.add('text-red-600', 'bg-red-50', 'border-red-200');
+                    disp.classList.remove('text-gray-800', 'bg-white', 'border-gray-200');
+                    if (game.fxFlash) document.getElementById('fx-layer').classList.add('critical-flash');
+                }
+                if (game.timeLeft <= critical && game.timeLeft > 0) playSound('tick');
+                if (game.timeLeft <= 0) {
+                    if (mode === 'siswa') {
+                        game.studentTimerRemaining = 0;
+                        // Waktu mode SISWA adalah jatah total satu siswa. Saat habis,
+                        // lewati sisa soal siswa tersebut agar timer tidak berubah menjadi tanpa batas.
+                        if (game.repeatMode === 'satu_nama') game.activeQuestions = [];
+                        if (game.repeatMode === 'semua_siswa_semua_soal' && game.currentStudent) {
+                            const studentKey = String(game.currentStudent.ID || `${game.currentStudent.Kelas}::${game.currentStudent.Nama}`);
+                            if (game.studentQuestionPools && game.studentQuestionPools[studentKey]) game.studentQuestionPools[studentKey] = [];
+                        }
                     }
-                }, 1000);
-            } else { disp.classList.add('hidden'); }
+                    stopTimer();
+                    if (game.answerMode === 'terakhir') finishQuestion(0, 'Waktu Habis!', 'Waktu habis untuk soal ini.', false);
+                    else finishQuestion(0, 'Waktu Habis!', 'Gagal menyelesaikan soal.');
+                }
+            }, 1000);
         }
         
         function stopTimer() { clearInterval(appState.game.timerInterval); resetFX(); }
