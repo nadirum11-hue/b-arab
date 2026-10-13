@@ -751,8 +751,32 @@
                         </div>
                     </div>
 
+                    <!-- Pengaturan perpindahan soal -->
+                    <div class="bg-amber-50 p-5 rounded-xl border border-amber-200">
+                        <label class="block text-sm font-bold text-amber-900 mb-3"><i class="fas fa-forward"></i> 6. Perpindahan Soal</label>
+                        <div class="flex flex-col space-y-3 ml-2">
+                            <label class="flex items-start space-x-2 cursor-pointer text-gray-800 font-bold text-sm">
+                                <input type="radio" name="play-advance-mode" value="manual" class="text-amber-600 w-4 h-4 mt-0.5" checked onchange="toggleAdvanceSettings()">
+                                <span>Manual — guru menekan tombol untuk melanjutkan soal atau siswa.</span>
+                            </label>
+                            <label class="flex items-start space-x-2 cursor-pointer text-gray-800 font-bold text-sm">
+                                <input type="radio" name="play-advance-mode" value="auto" class="text-amber-600 w-4 h-4 mt-0.5" onchange="toggleAdvanceSettings()">
+                                <span>Otomatis — soal berikutnya berpindah sendiri setelah jeda.</span>
+                            </label>
+                            <div id="play-advance-delay-wrapper" class="hidden ml-6 p-3 bg-white rounded-lg border border-amber-200">
+                                <label for="play-advance-delay" class="block text-xs font-bold text-amber-900 mb-2">Jeda setelah jawaban ditampilkan</label>
+                                <select id="play-advance-delay" class="w-full bg-gray-50 border-2 border-gray-200 rounded-lg p-2 font-bold text-gray-800">
+                                    <option value="2">2 detik — cepat</option>
+                                    <option value="3" selected>3 detik — seimbang</option>
+                                    <option value="5">5 detik — lebih santai</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p class="text-xs text-amber-800 mt-3">Pengaturan ini berlaku untuk satu sesi permainan. Rekap tetap muncul setelah seluruh sesi selesai.</p>
+                    </div>
+
                     <div class="border-t border-gray-200 pt-5">
-                        <label class="block text-sm font-bold text-gray-700 mb-3">6. Efek & Sensasi Game (On/Off)</label>
+                        <label class="block text-sm font-bold text-gray-700 mb-3">7. Efek & Sensasi Game (On/Off)</label>
                         <div class="flex flex-wrap gap-4">
                             <label class="flex items-center space-x-2 cursor-pointer bg-white border px-3 py-2 rounded-lg font-bold text-sm shadow-sm hover:bg-gray-50"><input type="checkbox" id="play-fx-sound" checked class="text-emerald-600 rounded"><span><i class="fas fa-volume-up text-gray-400 mr-1"></i> Suara & Musik</span></label>
                             <label class="flex items-center space-x-2 cursor-pointer bg-white border px-3 py-2 rounded-lg font-bold text-sm shadow-sm hover:bg-gray-50"><input type="checkbox" id="play-fx-apresiasi" checked class="text-emerald-600 rounded"><span><i class="fas fa-trophy text-orange-400 mr-1"></i> Apresiasi (Suara Benar & Confetti)</span></label>
@@ -1664,6 +1688,12 @@
         }
 
         function toggleOrderSettings() { const u = document.getElementById('play-use-names').checked; document.getElementById('play-order-settings').style.opacity = u ? '1' : '0.5'; document.getElementById('play-order-settings').style.pointerEvents = u ? 'auto' : 'none'; }
+
+        function toggleAdvanceSettings() {
+            const selected = document.querySelector('input[name="play-advance-mode"]:checked')?.value || 'manual';
+            const wrapper = document.getElementById('play-advance-delay-wrapper');
+            if (wrapper) wrapper.classList.toggle('hidden', selected !== 'auto');
+        }
         
         function updatePlayQuestions() {
             const selKats = Array.from(document.querySelectorAll('.play-kategori-cb:checked')).map(cb => cb.value);
@@ -1679,6 +1709,8 @@
             const selClasses = Array.from(document.querySelectorAll('.play-class-cb:checked')).map(cb => cb.value);
             const selKats = Array.from(document.querySelectorAll('.play-kategori-cb:checked')).map(cb => cb.value);
             const rep = document.getElementById('play-repeat-mode').value; const useN = document.getElementById('play-use-names').checked; const ord = document.querySelector('input[name="play-order"]:checked').value; const ansMode = document.querySelector('input[name="play-answer-mode"]:checked').value;
+            const advanceMode = document.querySelector('input[name="play-advance-mode"]:checked')?.value || 'manual';
+            const advanceDelay = Math.max(2, Math.min(5, parseInt(document.getElementById('play-advance-delay')?.value, 10) || 3));
             const sO = document.getElementById('play-fx-sound').checked; const sA = document.getElementById('play-fx-apresiasi').checked; const sT = document.getElementById('play-fx-ticker').checked; const sF = document.getElementById('play-fx-flash').checked;
             const sq = document.getElementById('play-single-q-select').value; const lv = document.getElementById('play-lives').value; 
             
@@ -1690,6 +1722,7 @@
             
             appState.game = { 
                 ...appState.game, classSelected: selClasses.join(', '), categorySelected: selKats.join(', '), repeatMode: rep, useName: useN, order: ord, answerMode: ansMode,
+                advanceMode: advanceMode, advanceDelay: advanceDelay,
                 fxSound: sO, fxApresiasi: sA, fxTicker: sT, fxFlash: sF, maxLives: lv, singleQuestionId: sq, globalWaktu: parseInt(document.getElementById('play-waktu').value) || 0, globalKritis: parseInt(document.getElementById('play-kritis').value) || 0,
                 sessionScores: [], score: 0, correctCount: 0, answeredCount: 0, questionResolved: false, allStudentsCompleted: false, studentHistory: [], globalHistory: []
             };
@@ -2161,13 +2194,22 @@
             appState.game.answeredCount++; document.getElementById('game-score').innerText = String(appState.game.score); saveScore(score);
             document.getElementById('btn-check-answer').classList.add('hidden');
             
-            if(appState.game.answerMode === 'terakhir') {
-                 nextTurn(); // Pindah seketika
-                 return true;
+            const nextBtn = document.getElementById('btn-next-question');
+            const nextStudentBtn = document.getElementById('btn-next-student');
+            if (appState.game.advanceMode === 'auto') {
+                // Mode otomatis menyembunyikan tombol; nextTurn tetap menjadi satu-satunya
+                // jalur perpindahan agar urutan siswa, soal, dan rekap tetap konsisten.
+                nextBtn.classList.add('hidden');
+                nextStudentBtn.classList.add('hidden');
+                if (showAlert && appState.game.answerMode !== 'terakhir') {
+                    Swal.fire({ title, text: score > 0 ? '' : text, icon: score > 0 ? 'success' : 'error', timer: 1200, timerProgressBar: true, showConfirmButton: false });
+                }
+                const delayMs = (Number(appState.game.advanceDelay) || 3) * 1000;
+                window.setTimeout(() => {
+                    if (appState.game && appState.game.questionResolved) nextTurn();
+                }, delayMs);
             } else {
-                const nextBtn = document.getElementById('btn-next-question');
-                const nextStudentBtn = document.getElementById('btn-next-student');
-                // Tentukan tombol dengan mengikuti alur pemilihan siswa di nextTurn().
+                // Tentukan tombol manual dengan mengikuti alur pemilihan siswa di nextTurn().
                 let nextActionChangesStudent = false;
                 if (appState.game.useName) {
                     if (appState.game.repeatMode === 'satu_nama') {
@@ -2201,7 +2243,7 @@
                     nextBtn.classList.remove('hidden');
                     nextStudentBtn.classList.add('hidden');
                 }
-                if (showAlert) {
+                if (showAlert && appState.game.answerMode !== 'terakhir') {
                     if (score > 0) Swal.fire({ title, icon: 'success', timer: 1500, showConfirmButton: false });
                     else Swal.fire({ title, text, icon: 'error', confirmButtonText: 'Lanjut' });
                 }
