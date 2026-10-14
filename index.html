@@ -674,13 +674,13 @@
                     <div class="grid grid-cols-1 gap-6 bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2">1. Pilih Kelas Peserta (Bisa Lebih Dari 1)</label>
-                            <div id="play-class-container" class="max-h-32 overflow-y-auto bg-white border-2 border-emerald-200 rounded-xl p-3 grid grid-cols-2 md:grid-cols-3 gap-2" onchange="updatePlayQuestions()">
+                            <div id="play-class-container" class="max-h-32 overflow-y-auto bg-white border-2 border-emerald-200 rounded-xl p-3 grid grid-cols-2 md:grid-cols-3 gap-2" onchange="updatePlayQuestions(); renderPlayStudents(true)">
                                 <!-- Checkbox Kelas akan di-render di sini -->
                             </div>
                         </div>
                         <div>
                             <label for="play-gender" class="block text-sm font-bold text-gray-700 mb-2">2. Pilih Gender Peserta</label>
-                            <select id="play-gender" class="w-full bg-white border-2 border-emerald-200 rounded-xl p-3 font-bold text-gray-800 outline-none focus:border-emerald-500">
+                            <select id="play-gender" onchange="renderPlayStudents(true)" class="w-full bg-white border-2 border-emerald-200 rounded-xl p-3 font-bold text-gray-800 outline-none focus:border-emerald-500">
                                 <option value="semua" selected>Semua Gender</option>
                                 <option value="L">Laki-laki</option>
                                 <option value="P">Perempuan</option>
@@ -688,7 +688,21 @@
                             <p class="text-xs text-gray-500 mt-2">Filter siswa berdasarkan kolom Gender (L/P) pada data siswa. Pilihan ini berlaku untuk semua kelas yang dicentang.</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">3. Pilih Kategori / Materi (Bisa Lebih Dari 1)</label>
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <label class="block text-sm font-bold text-gray-700">3. Pilih Nama Siswa yang Bermain</label>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="setPlayStudentSelection(true)" class="text-xs font-bold px-3 py-2 rounded-lg bg-emerald-100 text-emerald-800">Pilih Semua</button>
+                                    <button type="button" onclick="setPlayStudentSelection(false)" class="text-xs font-bold px-3 py-2 rounded-lg bg-gray-100 text-gray-700">Batalkan Semua</button>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mb-2">Centang hanya siswa yang hadir atau perlu remedial. Daftar ini mengikuti filter kelas dan gender. Semua siswa yang tampil dipilih secara default.</p>
+                            <div id="play-student-container" class="max-h-52 overflow-y-auto bg-white border-2 border-emerald-200 rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                <p class="text-sm text-gray-500">Pilih kelas dan gender untuk menampilkan siswa.</p>
+                            </div>
+                            <p id="play-student-count" class="text-xs font-bold text-emerald-800 mt-2">0 siswa dipilih</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">4. Pilih Kategori / Materi (Bisa Lebih Dari 1)</label>
                             <div id="play-kategori-container" class="max-h-32 overflow-y-auto bg-white border-2 border-emerald-200 rounded-xl p-3 grid grid-cols-1 md:grid-cols-2 gap-2" onchange="updatePlayQuestions()">
                                 <!-- Checkbox Kategori akan di-render di sini -->
                             </div>
@@ -697,17 +711,17 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-clock text-blue-500"></i> 4. Batas Waktu (Detik)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-clock text-blue-500"></i> 5. Batas Waktu (Detik)</label>
                             <input type="number" id="play-waktu" min="0" value="30" oninput="renderCategoryTimeSettings()" class="w-full bg-white border-2 border-blue-200 rounded-xl p-3 focus:border-blue-500 font-black text-blue-700 text-center transition outline-none">
                             <p class="text-[10px] text-gray-500 mt-1 font-bold">Isi 0 jika tidak ingin memakai timer (kecuali durasi kategori diatur tersendiri).</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-heartbeat text-red-500"></i> 5. Efek Waktu Kritis (Detik)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-heartbeat text-red-500"></i> 6. Efek Waktu Kritis (Detik)</label>
                             <input type="number" id="play-kritis" min="0" value="5" class="w-full bg-white border-2 border-red-200 rounded-xl p-3 focus:border-red-500 font-black text-red-600 text-center transition outline-none">
                             <p class="text-[10px] text-gray-500 mt-1 font-bold">Layar akan berkedip merah saat sisa waktu ini.</p>
                         </div>
                         <div class="md:col-span-2 border-t border-blue-200 pt-4">
-                            <label for="play-timer-mode" class="block text-sm font-black text-blue-900 mb-2"><i class="fas fa-stopwatch mr-1"></i> 6. Jenis Waktu / Patokan Timer</label>
+                            <label for="play-timer-mode" class="block text-sm font-black text-blue-900 mb-2"><i class="fas fa-stopwatch mr-1"></i> 7. Jenis Waktu / Patokan Timer</label>
                             <select id="play-timer-mode" onchange="renderCategoryTimeSettings()" class="w-full bg-white border-2 border-blue-200 rounded-xl p-3 font-bold text-gray-800 outline-none">
                                 <option value="siswa">Siswa — waktu berjalan untuk satu siswa dan tidak di-reset saat pindah soal</option>
                                 <option value="soal" selected>Soal — waktu di-reset setiap soal</option>
@@ -1259,6 +1273,7 @@
             sels.forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = classOpts; });
             selFlts.forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = classOptsFlt; });
             if(document.getElementById('play-class-container')) document.getElementById('play-class-container').innerHTML = checkKelasHTML;
+            renderPlayStudents(true);
 
             const selInpKat = document.getElementById('sel-kat-aktif'); const selFltNilaiKat = document.getElementById('filter-nilai-kategori');
             let katOpts = '<option value="">-- Pilih Kategori / Materi --</option>'; let katOptsFlt = '<option value="">Semua Kategori</option>';
@@ -1721,6 +1736,59 @@
             if (wrapper) wrapper.classList.toggle('hidden', selected !== 'auto');
         }
         
+        function getPlayStudentGender(student) {
+            const raw = String(student.Gender || '').trim().toLocaleLowerCase('id-ID');
+            if (['l', 'laki-laki', 'laki laki', 'laki_laki', 'male'].includes(raw)) return 'L';
+            if (['p', 'perempuan', 'wanita', 'female'].includes(raw)) return 'P';
+            return '';
+        }
+
+        function renderPlayStudents(resetSelection = false) {
+            const container = document.getElementById('play-student-container');
+            const count = document.getElementById('play-student-count');
+            if (!container) return;
+            const classes = Array.from(document.querySelectorAll('.play-class-cb:checked')).map(cb => cb.value);
+            const gender = document.getElementById('play-gender')?.value || 'semua';
+            if (!classes.length) {
+                container.innerHTML = '<p class="text-sm text-gray-500">Pilih minimal satu kelas untuk menampilkan daftar siswa.</p>';
+                if (count) count.textContent = '0 siswa dipilih';
+                return;
+            }
+            const previous = new Set(Array.from(container.querySelectorAll('.play-student-cb:checked')).map(cb => cb.value));
+            const seen = new Set();
+            const students = appState.studentsList.filter(student => classes.includes(String(student.Kelas || '').trim().toUpperCase()))
+                .filter(student => gender === 'semua' || getPlayStudentGender(student) === gender)
+                .filter(student => {
+                    const key = String(student.ID || '').trim() || `${String(student.Kelas || '').trim()}::${String(student.Nama || '').trim().toLocaleLowerCase('id-ID')}`;
+                    if (seen.has(key)) return false;
+                    seen.add(key); return true;
+                }).sort((a,b) => String(a.Nama || '').localeCompare(String(b.Nama || ''), 'id'));
+            if (!students.length) {
+                container.innerHTML = '<p class="text-sm text-amber-700">Tidak ada siswa yang cocok dengan pilihan kelas dan gender.</p>';
+                if (count) count.textContent = '0 siswa dipilih';
+                return;
+            }
+            container.innerHTML = students.map((student, index) => {
+                const key = String(student.ID || '').trim() || `${String(student.Kelas || '').trim()}::${String(student.Nama || '').trim().replace(/\s+/g, ' ')}`;
+                const value = encodeURIComponent(key);
+                const checked = resetSelection || previous.size === 0 ? 'checked' : (previous.has(value) ? 'checked' : '');
+                const label = `${String(student.Nama || '(Nama kosong)')} — ${String(student.Kelas || '')}`;
+                return `<label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-emerald-50 rounded-lg"><input type="checkbox" class="play-student-cb text-emerald-600 rounded w-4 h-4" value="${value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}" ${checked} onchange="updatePlayStudentCount()"><span class="font-bold text-sm text-gray-700">${label.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span></label>`;
+            }).join('');
+            updatePlayStudentCount();
+        }
+
+        function updatePlayStudentCount() {
+            const selected = document.querySelectorAll('.play-student-cb:checked').length;
+            const count = document.getElementById('play-student-count');
+            if (count) count.textContent = `${selected} dari ${document.querySelectorAll('.play-student-cb').length} siswa dipilih`;
+        }
+
+        function setPlayStudentSelection(checked) {
+            document.querySelectorAll('.play-student-cb').forEach(cb => { cb.checked = checked; });
+            updatePlayStudentCount();
+        }
+
         function updatePlayQuestions() {
             const selKats = Array.from(document.querySelectorAll('.play-kategori-cb:checked')).map(cb => cb.value);
             const qs = appState.questionsList.filter(q => selKats.includes(q.Kategori));
@@ -1795,8 +1863,10 @@
             appState.game.originalQuestions = [...qs]; appState.game.activeQuestions = [...qs];
             
             if (useN) { 
+                const selectedStudentKeys = new Set(Array.from(document.querySelectorAll('.play-student-cb:checked')).map(cb => decodeURIComponent(cb.value)));
+                if (selectedStudentKeys.size === 0) return Swal.fire('Pilih Nama Siswa', 'Centang minimal satu siswa yang akan bermain. Siswa yang tidak dicentang akan dilewati.', 'warning');
                 const seenStudentIds = new Set(); const seenStudentNames = new Set();
-                appState.game.originalStudents = appState.studentsList.filter(s => selClasses.includes(s.Kelas)).filter(student => {
+                appState.game.originalStudents = appState.studentsList.filter(s => selClasses.includes(String(s.Kelas || '').trim().toUpperCase())).filter(student => {
                     // Filter gender memakai nilai L/P yang digunakan data siswa, sekaligus menerima variasi teks lama.
                     if (selectedGender !== 'semua') {
                         const rawGender = String(student.Gender || '').trim().toLocaleLowerCase('id-ID');
@@ -1804,6 +1874,8 @@
                             : (rawGender === 'p' || rawGender === 'perempuan' || rawGender === 'wanita' || rawGender === 'female') ? 'P' : '';
                         if (normalizedGender !== selectedGender) return false;
                     }
+                    const studentKey = String(student.ID || '').trim() || `${String(student.Kelas || '').trim()}::${String(student.Nama || '').trim().replace(/\s+/g, ' ')}`;
+                    if (!selectedStudentKeys.has(studentKey)) return false;
                     // Cegah ID yang berulang maupun baris duplikat dengan nama+kelas yang sama di Spreadsheet.
                     const idKey = String(student.ID || '').trim();
                     const nameKey = `${String(student.Kelas||'').trim().toLocaleLowerCase()}::${String(student.Nama||'').trim().replace(/\s+/g,' ').toLocaleLowerCase()}`;
