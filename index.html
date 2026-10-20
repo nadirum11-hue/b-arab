@@ -707,21 +707,35 @@
                                 <!-- Checkbox Kategori akan di-render di sini -->
                             </div>
                         </div>
+                        <div>
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <label class="block text-sm font-bold text-gray-700">5. Pilih Soal yang Akan Dimainkan</label>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="setPlayQuestionSelection(true)" class="text-xs font-bold px-3 py-2 rounded-lg bg-emerald-100 text-emerald-800">Pilih Semua</button>
+                                    <button type="button" onclick="setPlayQuestionSelection(false)" class="text-xs font-bold px-3 py-2 rounded-lg bg-gray-100 text-gray-700">Batalkan Semua</button>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mb-2">Daftar mengikuti kategori yang dipilih. Centang hanya soal yang ingin ditampilkan. Setiap soal menampilkan tipe, kategori, dan isi pertanyaan.</p>
+                            <div id="play-question-container" class="max-h-80 overflow-y-auto bg-white border-2 border-emerald-200 rounded-xl p-3 space-y-2">
+                                <p class="text-sm text-gray-500">Pilih kategori untuk menampilkan daftar soal.</p>
+                            </div>
+                            <p id="play-question-count" class="text-xs font-bold text-emerald-800 mt-2">0 soal dipilih</p>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-clock text-blue-500"></i> 5. Batas Waktu (Detik)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-clock text-blue-500"></i> 6. Batas Waktu (Detik)</label>
                             <input type="number" id="play-waktu" min="0" value="30" oninput="renderCategoryTimeSettings()" class="w-full bg-white border-2 border-blue-200 rounded-xl p-3 focus:border-blue-500 font-black text-blue-700 text-center transition outline-none">
                             <p class="text-[10px] text-gray-500 mt-1 font-bold">Isi 0 jika tidak ingin memakai timer (kecuali durasi kategori diatur tersendiri).</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-heartbeat text-red-500"></i> 6. Efek Waktu Kritis (Detik)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fas fa-heartbeat text-red-500"></i> 7. Efek Waktu Kritis (Detik)</label>
                             <input type="number" id="play-kritis" min="0" value="5" class="w-full bg-white border-2 border-red-200 rounded-xl p-3 focus:border-red-500 font-black text-red-600 text-center transition outline-none">
                             <p class="text-[10px] text-gray-500 mt-1 font-bold">Layar akan berkedip merah saat sisa waktu ini.</p>
                         </div>
                         <div class="md:col-span-2 border-t border-blue-200 pt-4">
-                            <label for="play-timer-mode" class="block text-sm font-black text-blue-900 mb-2"><i class="fas fa-stopwatch mr-1"></i> 7. Jenis Waktu / Patokan Timer</label>
+                            <label for="play-timer-mode" class="block text-sm font-black text-blue-900 mb-2"><i class="fas fa-stopwatch mr-1"></i> 8. Jenis Waktu / Patokan Timer</label>
                             <select id="play-timer-mode" onchange="renderCategoryTimeSettings()" class="w-full bg-white border-2 border-blue-200 rounded-xl p-3 font-bold text-gray-800 outline-none">
                                 <option value="siswa">Siswa — waktu berjalan untuk satu siswa dan tidak di-reset saat pindah soal</option>
                                 <option value="soal" selected>Soal — waktu di-reset setiap soal</option>
@@ -1789,11 +1803,83 @@
             updatePlayStudentCount();
         }
 
+        function getPlayQuestionKey(question) {
+            return String(question.ID ?? `${question.Kategori || ''}::${question.Tipe_Game || ''}::${question.Pertanyaan || ''}`);
+        }
+
+        function getPlayQuestionPrompt(question) {
+            const raw = String(question.Pertanyaan || '');
+            const prompt = raw.split('|||')[0].trim();
+            return prompt || 'Soal tanpa teks pertanyaan';
+        }
+
+        function renderPlayQuestionSelection() {
+            const container = document.getElementById('play-question-container');
+            const count = document.getElementById('play-question-count');
+            if (!container) return;
+            if (!appState.game.questionSelection) appState.game.questionSelection = {};
+            const selectedCategories = Array.from(document.querySelectorAll('.play-kategori-cb:checked')).map(cb => cb.value);
+            const questions = appState.questionsList.filter(q => selectedCategories.includes(q.Kategori));
+            container.innerHTML = '';
+            if (!selectedCategories.length) {
+                container.innerHTML = '<p class="text-sm text-gray-500">Pilih kategori untuk menampilkan daftar soal.</p>';
+                if (count) count.textContent = '0 soal dipilih';
+                return;
+            }
+            if (!questions.length) {
+                container.innerHTML = '<p class="text-sm text-amber-700">Belum ada soal pada kategori yang dipilih.</p>';
+                if (count) count.textContent = '0 soal dipilih';
+                return;
+            }
+            questions.forEach((question, index) => {
+                const key = getPlayQuestionKey(question);
+                if (!Object.prototype.hasOwnProperty.call(appState.game.questionSelection, key)) appState.game.questionSelection[key] = true;
+                const label = document.createElement('label');
+                label.className = 'flex items-start gap-3 cursor-pointer p-3 border border-gray-100 hover:bg-emerald-50 rounded-lg';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox'; checkbox.className = 'play-question-cb mt-1 text-emerald-600 rounded w-4 h-4 flex-shrink-0';
+                checkbox.value = key; checkbox.checked = appState.game.questionSelection[key] !== false;
+                checkbox.addEventListener('change', () => { appState.game.questionSelection[key] = checkbox.checked; updatePlayQuestionCount(); updatePlaySingleQuestionOptions(); });
+                const textWrap = document.createElement('span'); textWrap.className = 'min-w-0 flex-1';
+                const heading = document.createElement('span'); heading.className = 'block text-xs font-black text-emerald-800 mb-1';
+                heading.textContent = `${index + 1}. ${question.Tipe_Game || 'Tipe tidak disebutkan'} · ${question.Kategori || 'Tanpa kategori'}`;
+                const prompt = document.createElement('span'); prompt.className = 'block text-sm font-semibold text-gray-800 whitespace-pre-wrap break-words';
+                prompt.textContent = getPlayQuestionPrompt(question);
+                textWrap.append(heading, prompt); label.append(checkbox, textWrap); container.appendChild(label);
+            });
+            updatePlayQuestionCount();
+            updatePlaySingleQuestionOptions();
+        }
+
+        function updatePlayQuestionCount() {
+            const checked = document.querySelectorAll('.play-question-cb:checked').length;
+            const total = document.querySelectorAll('.play-question-cb').length;
+            const count = document.getElementById('play-question-count');
+            if (count) count.textContent = `${checked} dari ${total} soal dipilih`;
+        }
+
+        function setPlayQuestionSelection(checked) {
+            if (!appState.game.questionSelection) appState.game.questionSelection = {};
+            document.querySelectorAll('.play-question-cb').forEach(cb => { cb.checked = checked; appState.game.questionSelection[cb.value] = checked; });
+            updatePlayQuestionCount();
+            updatePlaySingleQuestionOptions();
+        }
+
+        function updatePlaySingleQuestionOptions() {
+            const select = document.getElementById('play-single-q-select');
+            if (!select) return;
+            const selectedCategories = Array.from(document.querySelectorAll('.play-kategori-cb:checked')).map(cb => cb.value);
+            const qs = appState.questionsList.filter(q => selectedCategories.includes(q.Kategori) && appState.game.questionSelection?.[getPlayQuestionKey(q)] !== false);
+            const oldValue = select.value; select.innerHTML = '';
+            qs.forEach(q => {
+                const option = document.createElement('option'); option.value = String(q.ID);
+                const prompt = getPlayQuestionPrompt(q); option.textContent = `${q.Tipe_Game || 'Soal'} - ${prompt.substring(0, 60)}`; select.appendChild(option);
+            });
+            if (qs.some(q => String(q.ID) === oldValue)) select.value = oldValue;
+        }
+
         function updatePlayQuestions() {
-            const selKats = Array.from(document.querySelectorAll('.play-kategori-cb:checked')).map(cb => cb.value);
-            const qs = appState.questionsList.filter(q => selKats.includes(q.Kategori));
-            const sel = document.getElementById('play-single-q-select'); sel.innerHTML = '';
-            qs.forEach(q => { const textPreview = (q.Pertanyaan.split('|||')[0].substring(0, 40) + '...') || 'Soal Tanpa Teks Utama'; sel.innerHTML += `<option value="${q.ID}">${q.Tipe_Game} - ${textPreview}</option>`; });
+            renderPlayQuestionSelection();
             renderCategoryTimeSettings();
         }
 
@@ -1844,8 +1930,11 @@
             if (timerMode === 'siswa' && !useN) return Swal.fire('Aktifkan Nama Siswa', 'Jenis Waktu SISWA membutuhkan opsi Panggilan Nama Siswa aktif. Aktifkan pencatatan nama siswa atau pilih jenis waktu SOAL/KATEGORI.', 'warning');
             if (rep === 'satu_nama' && !useN) return Swal.fire('Pilih Nama Siswa', 'Pola ini membutuhkan opsi Panggilan Nama Siswa aktif.', 'warning');
             
-            const qs = appState.questionsList.filter(q => selKats.includes(q.Kategori));
-            if (qs.length === 0) return Swal.fire('Kosong', 'Belum ada soal pada kategori/materi yang dipilih.', 'error');
+            const categoryQuestions = appState.questionsList.filter(q => selKats.includes(q.Kategori));
+            if (categoryQuestions.length === 0) return Swal.fire('Kosong', 'Belum ada soal pada kategori/materi yang dipilih.', 'error');
+            const questionSelection = appState.game.questionSelection || {};
+            const qs = categoryQuestions.filter(q => questionSelection[getPlayQuestionKey(q)] !== false);
+            if (qs.length === 0) return Swal.fire('Pilih Soal', 'Centang minimal satu soal yang akan dimainkan. Soal yang tidak dicentang tidak akan muncul.', 'warning');
             
             appState.game = { 
                 ...appState.game, classSelected: selClasses.join(', '), categorySelected: selKats.join(', '), genderSelected: selectedGender, repeatMode: rep, useName: useN, order: ord, answerMode: ansMode,
@@ -1886,7 +1975,7 @@
                 appState.game.currentStudent = null;
                 if(appState.game.activeStudents.length === 0) { const genderLabel = selectedGender === 'L' ? 'laki-laki' : selectedGender === 'P' ? 'perempuan' : ''; const detail = genderLabel ? ` dengan gender ${genderLabel}` : ''; return Swal.fire('Siswa Tidak Ditemukan', `Tidak ada siswa${detail} pada kelas yang dipilih. Periksa pilihan kelas dan kolom Gender pada data siswa.`, 'warning'); }
             }
-            if (rep === 'satu') { const selectedQ = qs.find(q => q.ID === sq) || qs[0]; appState.game.activeQuestions = [selectedQ]; }
+            if (rep === 'satu') { const selectedQ = qs.find(q => String(q.ID) === String(sq)) || qs[0]; appState.game.activeQuestions = [selectedQ]; }
             if (rep === 'semua_siswa_semua_soal') {
                 if (!useN) return Swal.fire('Pilih Nama Siswa', 'Pola ini membutuhkan opsi Panggilan Nama Siswa aktif.', 'warning');
                 // Setiap siswa memiliki bank soal sendiri. Soal diacak tanpa pengulangan
